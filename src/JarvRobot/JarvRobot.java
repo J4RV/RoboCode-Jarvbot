@@ -55,8 +55,8 @@ public class JarvRobot extends AdvancedRobot {
 
     public void shoot(ScannedRobotEvent e) {
         if (getGunHeat() == 0) {
-            double power = 4;
-            int maxDistance = 600;
+            double power = 3;
+            int maxDistance = 800;
 
             if (e.getDistance() <= maxDistance) {
                 //Si el objetivo está casi quieto, disparar a máxima potencia
@@ -65,7 +65,7 @@ public class JarvRobot extends AdvancedRobot {
                 } else {
                     //Balas más rápidas a más distancias, balas fuertes y lentas a melee
                     power = power * (1 - e.getDistance() / maxDistance);
-                    power = clamp(power, 0.3, 3);
+                    power = clamp(power, 0.1, 3);
                 }
 
                 fire(power);
@@ -85,16 +85,18 @@ public class JarvRobot extends AdvancedRobot {
             setAhead(distance);
         else
             setBack(distance);
+
+        randomTurn();
     }
 
     public void randomTurn(){
         //Pequeña posibilidad de cambiar de rotación
-        if(random.nextDouble() >= 0.95){
+        if(random.nextDouble() >= 0.98){
             turnDegrees *= -1;
         }
 
         setTurnLeft(turnDegrees);
-        setTurnGunRight(-turnDegrees/5);
+        setTurnGunRight(turnDegrees/5);
     }
 
     public double track(ScannedRobotEvent e) {

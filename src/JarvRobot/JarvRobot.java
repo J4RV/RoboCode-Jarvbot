@@ -25,8 +25,8 @@ public class JarvRobot extends AdvancedRobot {
         setBodyColor(Color.red);
         setGunColor(Color.CYAN);
         setRadarColor(Color.red);
-        setScanColor(Color.red);
-        setBulletColor(Color.CYAN);
+        setScanColor(Color.GREEN);
+        setBulletColor(Color.red);
 
         //Moverse caóticamente
         while (true) {
@@ -37,13 +37,17 @@ public class JarvRobot extends AdvancedRobot {
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        double bearing = track(e);
-        if (bearing <= 3)
-            shoot(e);
+        double angle = track(e);
         execute();
+        if (angle <= 3){
+            shoot(e);
+            execute();
+        }
+        randomMovement();
     }
 
     public void onHitWall(HitWallEvent e) {
+        //Patrás
         runningAhead = !runningAhead;
     }
 
@@ -51,6 +55,17 @@ public class JarvRobot extends AdvancedRobot {
         if (e.isMyFault()) {
             back(80);
         }
+    }
+
+    public double track(ScannedRobotEvent e) {
+        //Rotación del arma, teniendo en cuenta la rotación de la base y el angulo del enemigo
+        double angle = getHeading() + e.getBearing();
+        angle -= getGunHeading();
+
+        setTurnGunRight(angle);
+        turnDegrees = angle;
+
+        return angle;
     }
 
     public void shoot(ScannedRobotEvent e) {
@@ -69,11 +84,8 @@ public class JarvRobot extends AdvancedRobot {
                 }
 
                 fire(power);
-            } else {
-                track(e);
             }
         }
-        randomMovement();
     }
 
     public void randomMovement(){
@@ -92,23 +104,13 @@ public class JarvRobot extends AdvancedRobot {
     public void randomTurn(){
         //Pequeña posibilidad de cambiar de rotación
         if(random.nextDouble() >= 0.98){
-            turnDegrees *= -1;
+            turnDegrees += Math.signum(turnDegrees) * 10;
+            turnDegrees *= -1.02;
         }
 
         setTurnLeft(turnDegrees);
-        setTurnGunRight(turnDegrees/5);
+        setTurnGunRight(turnDegrees);
     }
-
-    public double track(ScannedRobotEvent e) {
-        //Rotación del arma, teniendo en cuenta la rotación de la base y el angulo del enemigo
-        double angle = getHeading() + e.getBearing();
-        angle -= getGunHeading();
-
-        setTurnGunRight(angle);
-
-        return angle;
-    }
-
 
     //Utilidad
     public static double clamp(double value, double min, double max) {

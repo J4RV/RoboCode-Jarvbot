@@ -28,9 +28,6 @@ public class JarvRobot extends AdvancedRobot {
         setScanColor(Color.red);
         setBulletColor(Color.CYAN);
 
-        //Primer escaneo
-        //turnGunLeft(360);
-
         //Moverse caóticamente
         while (true) {
             randomMovement();
@@ -58,17 +55,17 @@ public class JarvRobot extends AdvancedRobot {
 
     public void shoot(ScannedRobotEvent e) {
         if (getGunHeat() == 0) {
-            double power = 3;
+            double power = 4;
             int maxDistance = 600;
 
             if (e.getDistance() <= maxDistance) {
-                //if the target is almost still, shoot at max power
+                //Si el objetivo está casi quieto, disparar a máxima potencia
                 if (e.getVelocity() <= 0.5) {
                     power = 3;
                 } else {
-                    //Max power on melee, less power if the enemy is distant
+                    //Balas más rápidas a más distancias, balas fuertes y lentas a melee
                     power = power * (1 - e.getDistance() / maxDistance);
-                    power = clamp(power, 0.5, 3);
+                    power = clamp(power, 0.3, 3);
                 }
 
                 fire(power);
@@ -91,7 +88,7 @@ public class JarvRobot extends AdvancedRobot {
     }
 
     public void randomTurn(){
-        //pequeña posibilidad de cambiar de rotación
+        //Pequeña posibilidad de cambiar de rotación
         if(random.nextDouble() >= 0.95){
             turnDegrees *= -1;
         }
@@ -111,7 +108,7 @@ public class JarvRobot extends AdvancedRobot {
     }
 
 
-    //Utility
+    //Utilidad
     public static double clamp(double value, double min, double max) {
         double res = value;
 

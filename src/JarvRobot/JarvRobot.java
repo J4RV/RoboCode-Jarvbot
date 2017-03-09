@@ -15,11 +15,11 @@ public class JarvRobot extends AdvancedRobot {
 
     SecureRandom random;
     boolean runningAhead;
+    double turnDegrees = 60;
 
     public JarvRobot() {
         random = new SecureRandom();
     }
-
 
     public void run() {
         setBodyColor(Color.red);
@@ -28,11 +28,14 @@ public class JarvRobot extends AdvancedRobot {
         setScanColor(Color.red);
         setBulletColor(Color.CYAN);
 
-        turnGunLeft(360);
+        //Primer escaneo
+        //turnGunLeft(360);
 
         //Moverse caóticamente
         while (true) {
-            dodge();
+            randomMovement();
+            randomTurn();
+            execute();
         }
     }
 
@@ -44,14 +47,6 @@ public class JarvRobot extends AdvancedRobot {
     }
 
     public void onHitWall(HitWallEvent e) {
-        double distance = 50;
-
-        if (runningAhead) {
-            back(distance);
-        } else {
-            ahead(distance);
-        }
-
         runningAhead = !runningAhead;
     }
 
@@ -81,32 +76,28 @@ public class JarvRobot extends AdvancedRobot {
                 track(e);
             }
         }
+        randomMovement();
     }
 
-    double turnDegrees;
-    public void dodge() {
+    public void randomMovement(){
         int maxDistance = 600;
         int minDistance = 200;
-
         double distance = random.nextDouble() * (maxDistance - minDistance) + minDistance;
-        double turnDegrees = random.nextDouble() * 180 - 90;
 
         if(runningAhead)
             setAhead(distance);
         else
             setBack(distance);
-
-        setTurnLeft(turnDegrees);
-        setTurnGunRight(360);
-        execute();
-    }
-
-    public void randomMovement(){
-
     }
 
     public void randomTurn(){
-        
+        //pequeña posibilidad de cambiar de rotación
+        if(random.nextDouble() >= 0.95){
+            turnDegrees *= -1;
+        }
+
+        setTurnLeft(turnDegrees);
+        setTurnGunRight(-turnDegrees/5);
     }
 
     public double track(ScannedRobotEvent e) {

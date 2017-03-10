@@ -72,7 +72,7 @@ public class JarvRobot extends AdvancedRobot {
     public void shoot(ScannedRobotEvent e) {
         if (getEnergy() > 5) {
             if (getGunHeat() == 0) {
-                double power = 3;
+                double power = 3.2;
                 int maxDistance = 450;
 
                 if (e.getDistance() <= maxDistance) {
@@ -82,7 +82,7 @@ public class JarvRobot extends AdvancedRobot {
                     }
                     //Balas más rápidas a más distancias, balas fuertes y lentas a melee
                     power = power * (1 - e.getDistance() / maxDistance);
-                    power = clamp(power, 0.1, 3);
+                    power = clamp(power, 0.05, 3);
 
                     fire(power);
                 }

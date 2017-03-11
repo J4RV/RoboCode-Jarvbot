@@ -8,6 +8,8 @@ import java.awt.*;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import static robocode.util.Utils.normalRelativeAngleDegrees;
+
 /**
  * Created by Jarv on 09/03/2017.
  */
@@ -15,7 +17,8 @@ public class JarvRobot extends AdvancedRobot {
 
     SecureRandom random;
     boolean runningAhead;
-    double turnDegrees = 60;
+    double turnDegrees = 20;
+    int noTargetTurns = 5;
 
     public JarvRobot() {
         random = new SecureRandom();
@@ -28,21 +31,26 @@ public class JarvRobot extends AdvancedRobot {
         setScanColor(Color.GREEN);
         setBulletColor(Color.red);
 
+        randomTurn();
+
         //Moverse caóticamente
         while (true) {
             randomMovement();
-            randomTurn();
+            noTargetTurns++;
+            if (noTargetTurns > 3)
+                randomTurn();
             execute();
         }
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
+        noTargetTurns = 0;
         double angle = track(e);
-        execute();
         if (angle <= 2) {
             shoot(e);
             execute();
         }
+        track(e);
         randomMovement();
     }
 
@@ -53,39 +61,31 @@ public class JarvRobot extends AdvancedRobot {
 
     public void onHitRobot(HitRobotEvent e) {
         if (e.isMyFault()) {
-            back(80);
+            runningAhead = !runningAhead;
         }
     }
 
     public double track(ScannedRobotEvent e) {
         //Rotación del arma, teniendo en cuenta la rotación de la base y el angulo del enemigo
-        double angle = getHeading() + e.getBearing();
-        angle -= getGunHeading();
+        double angle = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
 
         setTurnGunRight(angle);
-        setTurnRight(angle);
-        turnDegrees = angle;
+        setTurnRight(turnDegrees * 0.2);
 
         return angle;
     }
 
     public void shoot(ScannedRobotEvent e) {
-        if (getEnergy() > 5) {
-            if (getGunHeat() == 0) {
-                double power = 3.2;
-                int maxDistance = 450;
+        if (getGunHeat() == 0) {
+            double power = 3.2;
+            int maxDistance = 450;
 
-                if (e.getDistance() <= maxDistance) {
-                    //Si el objetivo está casi quieto, disparar con más potencia
-                    if (e.getVelocity() == 0) {
-                        power = 5;
-                    }
-                    //Balas más rápidas a más distancias, balas fuertes y lentas a melee
-                    power = power * (1 - e.getDistance() / maxDistance);
-                    power = clamp(power, 0.05, 3);
+            if (e.getDistance() <= maxDistance || e.getVelocity() == 0) {
+                //Balas más rápidas a más distancias, balas fuertes y lentas a melee
+                power = power * (1 - e.getDistance() / maxDistance);
+                power = clamp(power, 0.05, 3);
 
-                    fire(power);
-                }
+                fire(power);
             }
         }
     }
@@ -101,9 +101,8 @@ public class JarvRobot extends AdvancedRobot {
 
     public void randomTurn() {
         //Pequeña posibilidad de cambiar de rotación
-        turnDegrees += Math.signum(turnDegrees) * 1;
         if (random.nextDouble() >= 0.99) {
-            turnDegrees *= -1.02;
+            turnDegrees *= -1;
         }
 
         setTurnLeft(turnDegrees);

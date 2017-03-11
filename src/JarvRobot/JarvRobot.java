@@ -16,6 +16,7 @@ import static robocode.util.Utils.normalRelativeAngleDegrees;
 public class JarvRobot extends AdvancedRobot {
 
     SecureRandom random;
+    boolean tooClose = false;
     boolean runningAhead;
     double turnDegrees = 20;
     int noTargetTurns = 5;
@@ -37,7 +38,7 @@ public class JarvRobot extends AdvancedRobot {
         while (true) {
             randomMovement();
             noTargetTurns++;
-            if (noTargetTurns > 3)
+            if (noTargetTurns > 2)
                 randomTurn();
             execute();
         }
@@ -46,9 +47,14 @@ public class JarvRobot extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent e) {
         noTargetTurns = 0;
         double angle = track(e);
-        if (angle <= 2) {
+        if (angle <= 3) {
             shoot(e);
             execute();
+        }
+        if(e.getDistance()<250){
+            tooClose = true;
+        } else {
+            tooClose = false;
         }
         track(e);
         randomMovement();
@@ -67,10 +73,10 @@ public class JarvRobot extends AdvancedRobot {
 
     public double track(ScannedRobotEvent e) {
         //Rotación del arma, teniendo en cuenta la rotación de la base y el angulo del enemigo
-        double angle = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading()));
+        double angle = normalRelativeAngleDegrees(e.getBearing() + (getHeading() - getRadarHeading() - turnDegrees * 0.15));
 
         setTurnGunRight(angle);
-        setTurnRight(turnDegrees * 0.2);
+        setTurnRight(turnDegrees * 0.28);
 
         return angle;
     }
@@ -80,7 +86,7 @@ public class JarvRobot extends AdvancedRobot {
             double power = 3.2;
             int maxDistance = 450;
 
-            if (e.getDistance() <= maxDistance || e.getVelocity() == 0) {
+            if (e.getDistance() <= maxDistance) {
                 //Balas más rápidas a más distancias, balas fuertes y lentas a melee
                 power = power * (1 - e.getDistance() / maxDistance);
                 power = clamp(power, 0.05, 3);
@@ -91,7 +97,8 @@ public class JarvRobot extends AdvancedRobot {
     }
 
     public void randomMovement() {
-        double distance = 100;
+        double distance = random.nextDouble() * 50 + 1;
+        distance *= tooClose ? -1 : 1;
 
         if (runningAhead)
             setAhead(distance);
@@ -106,7 +113,7 @@ public class JarvRobot extends AdvancedRobot {
         }
 
         setTurnLeft(turnDegrees);
-        setTurnGunRight(turnDegrees);
+        setTurnGunLeft(turnDegrees*0.2);
     }
 
     //Utilidad
